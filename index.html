@@ -281,7 +281,12 @@
             return (
                 <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden">
                     <div className="absolute inset-0">
-                        <img src="./images/hero.jpg" alt="Семипалатинский полигон — руины испытательных сооружений" className="w-full h-full object-cover" />
+                        <div 
+                            className="absolute inset-0 bg-cover bg-center bg-no-repeat" 
+                            style={{ backgroundImage: 'url(./images/hero.jpg)' }}
+                            role="img" 
+                            aria-label="Семипалатинский полигон — руины испытательных сооружений"
+                        />
                         <div className="absolute inset-0 hero-overlay" />
                         <div className="absolute inset-0 bg-gradient-to-b from-dark-900/50 via-transparent to-dark-900" />
                     </div>
