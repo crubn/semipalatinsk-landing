@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Семипалатинский полигон: Эхо ядерной эпохи</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        heading: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#050505',
+                            800: '#0a0a0a',
+                            700: '#121212',
+                            600: '#1a1a1a',
+                            500: '#222222',
+                        },
+                        accent: {
+                            red: '#c41e3a',
+                            redLight: '#ff4444',
+                            orange: '#e63946',
+                            teal: '#2a9d8f',
+                            blue: '#4cc9f0',
+                            green: '#2ecc71',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #f1f1f1;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-up.visible { opacity: 1; transform: translateY(0); }
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-left.visible { opacity: 1; transform: translateX(0); }
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in-right.visible { opacity: 1; transform: translateX(0); }
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .scale-in.visible { opacity: 1; transform: scale(1); }
+        .delay-100 { transition-delay: 0.1s; }
+        .delay-200 { transition-delay: 0.2s; }
+        .delay-300 { transition-delay: 0.3s; }
+        .delay-400 { transition-delay: 0.4s; }
+        .delay-500 { transition-delay: 0.5s; }
+        .delay-600 { transition-delay: 0.6s; }
+        .timeline-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, #c41e3a, #e63946, #2a9d8f);
+        }
+        @media (max-width: 768px) {
+            .timeline-line { left: 20px; }
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #c41e3a 0%, #e63946 50%, #2a9d8f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero-overlay {
+            background: linear-gradient(180deg, rgba(5,5,5,0.3) 0%, rgba(5,5,5,0.7) 50%, rgba(5,5,5,0.95) 100%);
+        }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(196, 30, 58, 0.15);
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .stat-number { animation: countUp 0.6s ease-out forwards; }
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+        .pulse-anim { animation: pulse-slow 3s ease-in-out infinite; }
+        .grid-pattern {
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+        .opinion-bg {
+            background: linear-gradient(135deg, rgba(196,30,58,0.1) 0%, rgba(42,157,143,0.1) 100%);
+            border: 1px solid rgba(196,30,58,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const Icons = {
+            Radiation: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 12h0"/><path d="M7.5 14.5c1.4 2.4 4.1 3.5 6.5 2.5"/>
+                    <path d="M7.5 14.5c-2.3-1.4-3.2-4.3-2-6.7"/>
+                    <path d="M16.5 14.5c2.3-1.4 3.2-4.3 2-6.7"/>
+                    <path d="M12 2v4"/><path d="M12 18v4"/>
+                    <path d="M4.9 7.9l3.5 2"/><path d="M19.1 7.9l-3.5 2"/>
+                    <path d="M4.9 16.1l3.5-2"/><path d="M19.1 16.1l-3.5-2"/>
+                </svg>
+            ),
+            Map: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                    <line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>
+                </svg>
+            ),
+            Calendar: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            ),
+            Alert: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            ),
+            Users: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            ),
+            Leaf: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 2 17 2c-2.5 2.5-7 4-10 4a7 7 0 0 0 0 14z"/>
+                    <path d="M11 20v-7"/>
+                </svg>
+            ),
+            Globe: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                </svg>
+            ),
+            Shield: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            ),
+            BookOpen: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+                </svg>
+            ),
+            ChevronDown: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            ),
+            Target: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+                </svg>
+            ),
+            Heart: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+            ),
+            Zap: () => (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+            )
+        };
+
+        function useScrollAnimation(options = {}) {
+            const ref = useRef(null);
+            const [isVisible, setIsVisible] = useState(false);
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    if (entry.isIntersecting) setIsVisible(true);
+                }, { threshold: 0.15, ...options });
+                if (ref.current) observer.observe(ref.current);
+                return () => observer.disconnect();
+            }, []);
+            return [ref, isVisible];
+        }
+
+        function Navigation() {
+            const [scrolled, setScrolled] = useState(false);
+            const [menuOpen, setMenuOpen] = useState(false);
+            useEffect(() => {
+                const handleScroll = () => setScrolled(window.scrollY > 50);
+                window.addEventListener('scroll', handleScroll);
+                return () => window.removeEventListener('scroll', handleScroll);
+            }, []);
+            const navLinks = [
+                { href: '#causes', label: 'Причины' },
+                { href: '#geography', label: 'Территория' },
+                { href: '#history', label: 'История' },
+                { href: '#current', label: 'Последствия' },
+                { href: '#solutions', label: 'Решения' },
+                { href: '#opinion', label: 'Наш взгляд' },
+            ];
+            return (
+                <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-dark-900/95 backdrop-blur-md border-b border-white/5' : 'bg-transparent'}`}>
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="flex items-center justify-between h-16 lg:h-20">
+                            <a href="#" className="font-heading font-bold text-lg lg:text-xl text-white tracking-wide">
+                                СЕМИПАЛАТИНСК<span className="text-accent-red">.</span>ONLINE
+                            </a>
+                            <div className="hidden lg:flex items-center space-x-1">
+                                {navLinks.map((link) => (
+                                    <a key={link.href} href={link.href} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-white/5">{link.label}</a>
+                                ))}
+                            </div>
+                            <button className="lg:hidden p-2 text-gray-400 hover:text-white" onClick={() => setMenuOpen(!menuOpen)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    {menuOpen ? (<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>) : (<><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></>)}
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div className={`lg:hidden transition-all duration-300 overflow-hidden ${menuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className="px-4 pb-4 space-y-1 bg-dark-900/95 backdrop-blur-md border-b border-white/5">
+                            {navLinks.map((link) => (
+                                <a key={link.href} href={link.href} className="block px-4 py-3 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors" onClick={() => setMenuOpen(false)}>{link.label}</a>
+                            ))}
+                        </div>
+                    </div>
+                </nav>
+            );
+        }
+
+        function HeroSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            return (
+                <section ref={ref} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+                    <div className="absolute inset-0">
+                        <img src="https://images.unsplash.com/photo-1534955507199-133867eb461d?w=1920&q=80" alt="Пустынный ландшафт Семипалатинского полигона" className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 hero-overlay" />
+                        <div className="absolute inset-0 bg-gradient-to-b from-dark-900/50 via-transparent to-dark-900" />
+                    </div>
+                    <div className="absolute top-1/4 right-10 lg:right-20 text-accent-red/20 pulse-anim">
+                        <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 6v3M12 15v3M6.34 8.17l2.12 2.12M15.54 13.71l2.12 2.12M6.34 15.83l2.12-2.12M15.54 10.29l2.12-2.12" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                        </svg>
+                    </div>
+                    <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <div className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                            <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-accent-red/10 border border-accent-red/20 text-accent-red text-sm font-medium mb-8">
+                                <Icons.Radiation />
+                                <span>40 лет ядерных испытаний в Казахстане</span>
+                            </div>
+                            <h1 className="font-heading text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight mb-6">
+                                СЕМИПАЛАТИНСКИЙ<br /><span className="gradient-text">ПОЛИГОН</span>
+                            </h1>
+                            <p className="text-lg sm:text-xl lg:text-2xl text-gray-300 max-w-3xl mx-auto mb-4 font-light">Эхо ядерной эпохи</p>
+                            <p className="text-base sm:text-lg text-gray-400 max-w-2xl mx-auto mb-12">
+                                Трагедия, история и путь к исцелению земли Казахстана. История о том, как человечество узнало цену ядерного оружия.
+                            </p>
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                <a href="#causes" className="group relative px-8 py-4 bg-accent-red hover:bg-accent-orange text-white font-semibold rounded-lg transition-all duration-300 overflow-hidden">
+                                    <span className="relative z-10 flex items-center space-x-2"><Icons.BookOpen /><span>Изучить историю</span></span>
+                                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                                </a>
+                                <a href="#opinion" className="px-8 py-4 border border-white/20 hover:border-white/40 text-white font-semibold rounded-lg transition-all duration-300 hover:bg-white/5">Наше решение</a>
+                            </div>
+                        </div>
+                        <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+                            <a href="#causes" className="flex flex-col items-center text-gray-500 hover:text-white transition-colors">
+                                <span className="text-xs mb-2">Листайте вниз</span>
+                                <div className="animate-bounce"><Icons.ChevronDown /></div>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function CausesSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            const causes = [
+                {
+                    icon: <Icons.Target />,
+                    title: 'Холодная война',
+                    description: 'После Второй мировой войны мир разделился на два лагеря. СССР стремился обеспечить военно-стратегический паритет с США, обладавшими ядерным монополией с 1945 года. Семипалатинск стал ключевым элементом этого противостояния.'
+                },
+                {
+                    icon: <Icons.Map />,
+                    title: 'Почему именно Казахстан?',
+                    description: 'Удаленность от густонаселенных районов, открытая степная местность и близость к транссибирской железной дороге сделали эту территорию «идеальной» для проведения испытаний. Однако правительство не учло плотность населения в приграничных районах.'
+                }
+            ];
+            return (
+                <section id="causes" className="py-20 lg:py-32 relative grid-pattern">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-red font-semibold text-sm tracking-wider uppercase mb-4 block">Контекст</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Причины создания полигона</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Политические и геополитические факторы, приведшие к созданию крупнейшего в мире ядерного полигона</p>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {causes.map((cause, index) => (
+                                <div key={index} className={`p-8 rounded-2xl bg-dark-700/50 border border-white/5 card-hover fade-in-up delay-${(index + 1) * 200} ${isVisible ? 'visible' : ''}`}>
+                                    <div className="w-14 h-14 rounded-xl bg-accent-red/10 flex items-center justify-center text-accent-red mb-6">{cause.icon}</div>
+                                    <h3 className="font-heading text-xl font-bold text-white mb-4">{cause.title}</h3>
+                                    <p className="text-gray-400 leading-relaxed">{cause.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={`mt-12 p-6 rounded-xl bg-accent-red/5 border border-accent-red/10 fade-in-up delay-400 ${isVisible ? 'visible' : ''}`}>
+                            <p className="text-center text-gray-300">
+                                <span className="text-accent-red font-bold">Важно:</span> Полигон был создан в условиях строжайшей секретности. Местное население не было проинформировано о рисках и не было эвакуировано перед первыми взрывами.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function GeographySection() {
+            const [ref, isVisible] = useScrollAnimation();
+            const [countStarted, setCountStarted] = useState(false);
+            useEffect(() => { if (isVisible && !countStarted) setCountStarted(true); }, [isVisible]);
+            const stats = [
+                { number: 18000, suffix: ' км²', label: 'Площадь полигона', compare: '≈ размеру Ливана или Косово' },
+                { number: 456, suffix: '', label: 'Ядерных взрывов', compare: 'в 2000 раз мощнее Хиросимы суммарно' },
+                { number: 40, suffix: ' лет', label: 'Период испытаний', compare: '1949 — 1989' },
+                { number: 1500000, suffix: '+', label: 'Пострадавших людей', compare: 'жителей Казахстана и соседних регионов' }
+            ];
+            function AnimatedNumber({ value, suffix, start }) {
+                const [count, setCount] = useState(0);
+                useEffect(() => {
+                    if (!start) return;
+                    let startTime = null;
+                    const duration = 2000;
+                    function animate(timestamp) {
+                        if (!startTime) startTime = timestamp;
+                        const progress = Math.min((timestamp - startTime) / duration, 1);
+                        const easeOut = 1 - Math.pow(1 - progress, 3);
+                        setCount(Math.floor(easeOut * value));
+                        if (progress < 1) requestAnimationFrame(animate);
+                    }
+                    requestAnimationFrame(animate);
+                }, [start, value]);
+                return <span>{count.toLocaleString()}{suffix}</span>;
+            }
+            return (
+                <section id="geography" className="py-20 lg:py-32 relative">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-orange font-semibold text-sm tracking-wider uppercase mb-4 block">Масштаб катастрофы</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Территория и цифры</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Цифры, которые трудно осознать. Полигон стал крупнейшим в мире центром ядерных испытаний за всю историю человечества.</p>
+                        </div>
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+                            {stats.map((stat, index) => (
+                                <div key={index} className={`p-6 rounded-2xl bg-dark-700/50 border border-white/5 text-center card-hover fade-in-up delay-${(index + 1) * 100} ${isVisible ? 'visible' : ''}`}>
+                                    <div className="font-heading text-4xl lg:text-5xl font-black text-accent-red mb-2">
+                                        <AnimatedNumber value={stat.number} suffix={stat.suffix} start={countStarted} />
+                                    </div>
+                                    <div className="text-white font-semibold mb-2">{stat.label}</div>
+                                    <div className="text-sm text-gray-500">{stat.compare}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={`grid lg:grid-cols-2 gap-8 fade-in-up delay-400 ${isVisible ? 'visible' : ''}`}>
+                            <div className="relative rounded-2xl overflow-hidden bg-dark-700 border border-white/5 aspect-video">
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="text-center p-8">
+                                        <div className="relative inline-block mb-6">
+                                            <div className="w-40 h-32 rounded-full bg-accent-red/20 border-2 border-accent-red/50 flex items-center justify-center">
+                                                <div className="w-4 h-4 bg-accent-red rounded-full animate-ping absolute" />
+                                                <div className="w-3 h-3 bg-accent-red rounded-full relative" />
+                                            </div>
+                                            <div className="absolute -top-2 -right-8 bg-accent-red text-white text-xs font-bold px-2 py-1 rounded">СРСР</div>
+                                        </div>
+                                        <p className="text-gray-400 text-sm">Схематичное расположение полигона</p>
+                                        <p className="text-gray-500 text-xs mt-2">Координаты: 50°26′N 77°48′E</p>
+                                    </div>
+                                </div>
+                                <div className="absolute inset-0 grid grid-cols-8 grid-rows-6 opacity-10">
+                                    {[...Array(48)].map((_, i) => (<div key={i} className="border border-white/20" />))}
+                                </div>
+                            </div>
+                            <div className="flex flex-col justify-center space-y-6">
+                                <div className="p-6 rounded-xl bg-dark-700/50 border border-white/5">
+                                    <h4 className="font-heading text-lg font-bold text-white mb-3">Сравнение площади</h4>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <div className="flex justify-between text-sm mb-1">
+                                                <span className="text-gray-400">Семипалатинский полигон</span>
+                                                <span className="text-accent-red font-bold">18 000 км²</span>
+                                            </div>
+                                            <div className="h-2 bg-dark-500 rounded-full overflow-hidden"><div className="h-full bg-accent-red rounded-full" style={{width: '100%'}} /></div>
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between text-sm mb-1">
+                                                <span className="text-gray-400">Ливан</span>
+                                                <span className="text-gray-300">10 452 км²</span>
+                                            </div>
+                                            <div className="h-2 bg-dark-500 rounded-full overflow-hidden"><div className="h-full bg-gray-600 rounded-full" style={{width: '58%'}} /></div>
+                                        </div>
+                                        <div>
+                                            <div className="flex justify-between text-sm mb-1">
+                                                <span className="text-gray-400">Кипр</span>
+                                                <span className="text-gray-300">9 251 км²</span>
+                                            </div>
+                                            <div className="h-2 bg-dark-500 rounded-full overflow-hidden"><div className="h-full bg-gray-600 rounded-full" style={{width: '51%'}} /></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="p-6 rounded-xl bg-accent-orange/5 border border-accent-orange/10">
+                                    <h4 className="font-heading text-lg font-bold text-white mb-2">Эквивалент мощности</h4>
+                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                        Суммарная мощность всех взрывов на полигоне превысила <span className="text-accent-orange font-bold">2,5 мегатонны</span> в тротиловом эквиваленте. Для сравнения: бомба, сброшенная на Хиросиму, имела мощность всего 15 килотонн.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function TimelineSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            const events = [
+                { year: '1947', title: 'Создание полигона', description: 'Постановление Совета Министров СССР о создании Семипалатинского ядерного полигона. Строительство велось в условиях строжайшей секретности.', side: 'left' },
+                { year: '1949', title: 'Первый ядерный взрыв', description: '29 августа 1949 года — детонация первой советской атомной бомбы РДС-1. Мощность взрыва составила 22 килотонны. Испытание проводилось без эвакуации местного населения.', side: 'right' },
+                { year: '1953', title: 'Первая водородная бомба', description: 'СССР успешно испытал термоядерное оружие на полигоне. Мощность взрыва составила 400 килотонн — в 26 раз мощнее бомбы для Хиросимы.', side: 'left' },
+                { year: '1989', title: 'Движение «Невада — Семипалатинск»', description: 'Во главе с Олжасом Сулейменовым начинается массовое антиядерное движение. Митинги и протесты привлекают внимание всего мира к проблеме.', side: 'right' },
+                { year: '1991', title: 'Закрытие полигона', description: '29 августа 1991 года Президент Казахстана Нурсултан Назарбаев подписывает Указ о закрытии полигона. Казахстан добровольно отказывается от ядерного оружия.', side: 'left' },
+                { year: '2012', title: 'Международное признание', description: '29 августа объявлен Международным днем действий против ядерных испытаний ООН. Казахстан инициировал принятие этой резолюции в 2009 году.', side: 'right' }
+            ];
+            return (
+                <section id="history" className="py-20 lg:py-32 relative grid-pattern">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-teal font-semibold text-sm tracking-wider uppercase mb-4 block">Хронология</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">История полигона</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Ключевые события более чем 40-летней истории ядерных испытаний и борьбы за их прекращение</p>
+                        </div>
+                        <div className="relative">
+                            <div className="timeline-line hidden md:block" />
+                            <div className="space-y-8 md:space-y-0">
+                                {events.map((event, index) => (
+                                    <div key={index} className={`relative md:flex md:items-center md:justify-between md:mb-12 fade-in-${index % 2 === 0 ? 'left' : 'right'} delay-${(index + 1) * 100} ${isVisible ? 'visible' : ''}`}>
+                                        <div className="md:hidden absolute left-5 top-0 bottom-0 w-0.5 bg-gradient-to-b from-accent-red via-accent-orange to-accent-teal" />
+                                        <div className="absolute left-3 md:left-1/2 md:-translate-x-1/2 w-4 h-4 rounded-full bg-accent-red border-4 border-dark-900 z-10" />
+                                        <div className={`ml-12 md:ml-0 md:w-[45%] ${event.side === 'right' ? 'md:order-2' : 'md:order-1 md:text-right'}`}>
+                                            <div className="p-6 rounded-xl bg-dark-700/50 border border-white/5 card-hover">
+                                                <div className={`inline-flex items-center space-x-2 mb-3 ${event.side === 'left' && 'md:flex-row-reverse md:space-x-reverse'}`}>
+                                                    <Icons.Calendar /><span className="font-heading text-2xl font-bold text-accent-red">{event.year}</span>
+                                                </div>
+                                                <h3 className="font-heading text-lg font-bold text-white mb-2">{event.title}</h3>
+                                                <p className="text-gray-400 text-sm leading-relaxed">{event.description}</p>
+                                            </div>
+                                        </div>
+                                        <div className="hidden md:block md:w-[45%]" />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className={`mt-12 text-center fade-in-up delay-500 ${isVisible ? 'visible' : ''}`}>
+                            <div className="inline-block p-6 rounded-xl bg-accent-teal/5 border border-accent-teal/20">
+                                <p className="text-accent-teal font-heading font-bold text-lg mb-2">29 августа — День закрытия полигона</p>
+                                <p className="text-gray-400 text-sm">Ежегодно отмечается как Международный день действий против ядерных испытаний</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function CurrentStateSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            return (
+                <section id="current" className="py-20 lg:py-32 relative">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-redLight font-semibold text-sm tracking-wider uppercase mb-4 block">Последствия</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Сегодняшнее состояние</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Десятилетия после закрытия полигона, но последствия продолжают влиять на жизнь людей и природу</p>
+                        </div>
+                        <div className="grid lg:grid-cols-2 gap-8">
+                            <div className={`p-8 rounded-2xl bg-dark-700/50 border border-white/5 fade-in-left delay-100 ${isVisible ? 'visible' : ''}`}>
+                                <div className="flex items-center space-x-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-accent-red/10 flex items-center justify-center text-accent-red"><Icons.Alert /></div>
+                                    <h3 className="font-heading text-2xl font-bold text-white">Экология</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Заражение земель</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            Около <span className="text-accent-red font-bold">300 тысяч гектаров</span> земель остаются радиоактивно загрязненными. Цезий-137 и стронций-90 имеют период полураспада 30 и 28 лет соответственно — они будут оставаться опасными еще столетия.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Радиационный фон</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            В зонах сильного загрязнения радиационный фон превышает норму в <span className="text-accent-red font-bold">10-100 раз</span>. Наиболее пострадали районы Дегелена и Балапана, где проводились подземные испытания.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Вода и животные</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            Река Иртыш, главный водный артерии региона, подвергается риску переноса радионуклидов. В зоне полигона зафиксированы мутации у фауны и снижение биоразнообразия.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className={`p-8 rounded-2xl bg-dark-700/50 border border-white/5 fade-in-right delay-200 ${isVisible ? 'visible' : ''}`}>
+                                <div className="flex items-center space-x-3 mb-6">
+                                    <div className="w-12 h-12 rounded-xl bg-accent-orange/10 flex items-center justify-center text-accent-orange"><Icons.Users /></div>
+                                    <h3 className="font-heading text-2xl font-bold text-white">Люди</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Пострадавшие поколения</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            Более <span className="text-accent-orange font-bold">1,5 миллиона</span> человек подверглись радиационному воздействию. Многие получили дозы облучения в десятки раз превышающие допустимые нормы, не подозревая об опасности.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Здоровье</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            В прилегающих к полигону районах в <span className="text-accent-orange font-bold">3-4 раза</span> выше уровень онкологических заболеваний, заболеваний щитовидной железы и сердечно-сосудистой системы. Растет число детей с врожденными патологиями.
+                                        </p>
+                                    </div>
+                                    <div className="p-4 rounded-lg bg-dark-600/50">
+                                        <h4 className="font-semibold text-white mb-2">Генетические последствия</h4>
+                                        <p className="text-gray-400 text-sm leading-relaxed">
+                                            Исследования показывают увеличение частоты хромосомных аберраций у потомства облученных лиц. Эффекты могут проявляться в течение нескольких поколений.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div className={`mt-12 text-center fade-in-up delay-300 ${isVisible ? 'visible' : ''}`}>
+                            <blockquote className="text-xl lg:text-2xl text-gray-300 italic max-w-4xl mx-auto">
+                                «Мы не просили, чтобы над нами взрывали атомные бомбы. Мы просто жили на своей земле, пасли скот, растили детей. Никто не предупредил нас об опасности.»
+                            </blockquote>
+                            <cite className="block mt-4 text-gray-500 text-sm">— Свидетельства жителей приполигонных районов</cite>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function SolutionsSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            const solutions = [
+                { icon: <Icons.Heart />, title: 'Реабилитация пострадавших', description: 'Государственные программы медицинской помощи, диспансерное наблюдение, лечение онкологических заболеваний и патологий щитовидной железы. Ежегодно выделяются средства из республиканского бюджета.', color: 'accent-red' },
+                { icon: <Icons.Globe />, title: 'Помощь ООН и международная поддержка', description: 'Программы ЮНИСЕФ, ВОЗ и МАГАТЭ по мониторингу радиационного фона, оказанию медицинской помощи и развитию инфраструктуры в прилегающих районах.', color: 'accent-blue' },
+                { icon: <Icons.Shield />, title: 'Договор о нераспространении ЯО', description: 'Казахстан является сторонником ДНЯО и CTBT (Договора о всеобъемлющем запрещении ядерных испытаний). Страна выступает за мирное использование атомной энергии.', color: 'accent-teal' },
+                { icon: <Icons.Leaf />, title: 'Очистка территорий', description: 'Проекты по деконтаминации загрязненных земель, создание зон ограниченного доступа, мониторинг грунтовых вод и воздуха. Используются биоремедиационные технологии.', color: 'accent-green' },
+                { icon: <Icons.Radiation />, title: 'Национальный ядерный центр РК', description: 'Ведущая научная организация по изучению последствий испытаний, разработке методов радиационного контроля и обеспечению ядерной безопасности Казахстана.', color: 'accent-orange' },
+                { icon: <Icons.Zap />, title: 'Международные гранты', description: 'Привлечение международного финансирования для восстановления экосистем, развития альтернативной энергетики и поддержки пострадавших сообществ.', color: 'accent-teal' }
+            ];
+            return (
+                <section id="solutions" className="py-20 lg:py-32 relative grid-pattern">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-teal font-semibold text-sm tracking-wider uppercase mb-4 block">Действия</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Пути решения от мира и государства</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Международное сообщество и правительство Казахстана предпринимают конкретные шаги для преодоления последствий ядерных испытаний</p>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {solutions.map((solution, index) => (
+                                <div key={index} className={`p-6 rounded-2xl bg-dark-700/50 border border-white/5 card-hover scale-in delay-${(index + 1) * 100} ${isVisible ? 'visible' : ''}`}>
+                                    <div className={`w-12 h-12 rounded-xl bg-${solution.color}/10 flex items-center justify-center text-${solution.color} mb-4`}>
+                                        {solution.icon}
+                                    </div>
+                                    <h3 className="font-heading text-lg font-bold text-white mb-3">{solution.title}</h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed">{solution.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function OpinionSection() {
+            const [ref, isVisible] = useScrollAnimation();
+            const ourSolutions = [
+                { title: 'Волонтерские движения', description: 'Организация студенческих и молодежных волонтерских групп для информирования населения, помощи пострадавшим семьям и экологического мониторинга.', icon: <Icons.Users /> },
+                { title: 'Инновационные технологии очистки', description: 'Применение фиторемедиации (очистка растениями) и нанотехнологий для обеззараживания почв. Создание пилотных проектов на загрязненных участках.', icon: <Icons.Leaf /> },
+                { title: 'Международные гранты на медицину', description: 'Активное участие в международных конкурсах и фондах для привлечения средств на диагностику и лечение пострадавших, создание мобильных клиник.', icon: <Icons.Heart /> },
+                { title: 'Образовательные программы', description: 'Внедрение в школы и вузы курсов по ядерной безопасности, радиационной экологии и истории полигона. Создание онлайн-архива свидетельств.', icon: <Icons.BookOpen /> }
+            ];
+            return (
+                <section id="opinion" className="py-20 lg:py-32 relative">
+                    <div ref={ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className={`text-center mb-16 fade-in-up ${isVisible ? 'visible' : ''}`}>
+                            <span className="text-accent-teal font-semibold text-sm tracking-wider uppercase mb-4 block">Конструктив</span>
+                            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Наш взгляд и способы решения</h2>
+                            <p className="text-gray-400 max-w-2xl mx-auto text-lg">Личная позиция автора и конкретные предложения по преодолению последствий</p>
+                        </div>
+                        <div className={`mb-16 opinion-bg rounded-2xl p-8 lg:p-12 fade-in-up delay-100 ${isVisible ? 'visible' : ''}`}>
+                            <div className="flex items-start space-x-4 mb-6">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-red to-accent-teal flex items-center justify-center text-white font-heading font-bold text-xl flex-shrink-0">
+                                    АВ
+                                </div>
+                                <div>
+                                    <h3 className="font-heading text-xl font-bold text-white mb-1">Позиция автора проекта</h3>
+                                    <p className="text-accent-teal text-sm">Видение проблемы и путь вперед</p>
+                                </div>
+                            </div>
+                            <div className="prose prose-invert max-w-none">
+                                <p className="text-gray-300 text-lg leading-relaxed mb-4">
+                                    Семипалатинский полигон — это не просто страница истории СССР, это живое напоминание о том, как далеко может зайти человеческое безрассудство в погоне за военным превосходством. Я считаю, что главный урок полигона заключается в необходимости международного контроля над ядерными технологиями и приоритете человеческой жизни над геополитическими амбициями.
+                                </p>
+                                <p className="text-gray-300 text-lg leading-relaxed mb-4">
+                                    Казахстан сделал беспрецедентный шаг, добровольно отказавшись от ядерного оружия и закрыв полигон. Этот пример должен вдохновлять мир на дальнейшее разоружение. Однако моральный долг перед пострадавшими требует не только компенсаций, но и системных изменений в подходе к экологической реабилитации.
+                                </p>
+                                <p className="text-gray-300 text-lg leading-relaxed">
+                                    Мы видим будущее, где технологии служат восстановлению, а не разрушению — где молодое поколение берет на себя ответственность за исцеление своей земли.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {ourSolutions.map((item, index) => (
+                                <div key={index} className={`p-6 rounded-xl bg-dark-700/50 border border-accent-teal/10 card-hover fade-in-${index % 2 === 0 ? 'left' : 'right'} delay-${(index + 1) * 100} ${isVisible ? 'visible' : ''}`}>
+                                    <div className="flex items-center space-x-3 mb-4">
+                                        <div className="w-10 h-10 rounded-lg bg-accent-teal/10 flex items-center justify-center text-accent-teal">
+                                            {item.icon}
+                                        </div>
+                                        <h3 className="font-heading text-lg font-bold text-white">{item.title}</h3>
+                                    </div>
+                                    <p className="text-gray-400 text-sm leading-relaxed">{item.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={`mt-12 text-center fade-in-up delay-400 ${isVisible ? 'visible' : ''}`}>
+                            <div className="inline-flex flex-col sm:flex-row items-center gap-4 p-6 rounded-xl bg-gradient-to-r from-accent-red/10 to-accent-teal/10 border border-white/5">
+                                <span className="text-white font-heading font-bold text-lg">Присоединяйтесь к инициативе</span>
+                                <a href="#" className="px-6 py-3 bg-accent-teal hover:bg-accent-teal/80 text-white font-semibold rounded-lg transition-colors" onClick={(e) => { e.preventDefault(); alert('Здесь может быть форма обратной связи или ссылка на социальные сети проекта'); }}>
+                                    Связаться с автором
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            );
+        }
+
+        function Footer() {
+            const sources = [
+                'Национальный ядерный центр Республики Казахстан',
+                'ЮНИСЕФ — Отчет о радиационном воздействии (2000)',
+                'МАГАТЭ — Оценка радиологической ситуации (1998)',
+                'Архивы движения «Невада — Семипалатинск»',
+                'Государственный архив РФ, фонд Р-7294',
+                'Всемирная организация здравоохранения (ВОЗ)',
+                'Министерство экологии, геологии и природных ресурсов РК',
+                'Научные публикации: «Ядерный полигон Семипалатинск» (М., 1997)'
+            ];
+            return (
+                <footer className="py-16 border-t border-white/5 bg-dark-900">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="grid lg:grid-cols-3 gap-12 mb-12">
+                            <div>
+                                <h3 className="font-heading text-xl font-bold text-white mb-4">
+                                    СЕМИПАЛАТИНСК<span className="text-accent-red">.</span>ONLINE
+                                </h3>
+                                <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                                    Образовательный проект, посвященный истории Семипалатинского ядерного полигона, его последствиям и путям решения проблем радиационного загрязнения.
+                                </p>
+                                <p className="text-gray-500 text-sm">Автор проекта: <span className="text-white">[Ваше Имя]</span></p>
+                                <p className="text-gray-500 text-sm">Год создания: 2026</p>
+                            </div>
+                            <div className="lg:col-span-2">
+                                <h4 className="font-heading text-lg font-bold text-white mb-4">Использованные источники</h4>
+                                <div className="grid sm:grid-cols-2 gap-2">
+                                    {sources.map((source, index) => (
+                                        <div key={index} className="flex items-start space-x-2 text-sm text-gray-400">
+                                            <span className="text-accent-red mt-1">•</span>
+                                            <span>{source}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <p className="text-gray-500 text-sm">© 2026 Проект по ядерной безопасности. Все права защищены.</p>
+                            <div className="flex items-center space-x-4 text-gray-500 text-sm">
+                                <span>Создано с заботой о будущем</span>
+                                <span className="text-accent-teal">♥</span>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            );
+        }
+
+        function App() {
+            return (
+                <div className="min-h-screen bg-dark-900 text-white">
+                    <Navigation />
+                    <HeroSection />
+                    <CausesSection />
+                    <GeographySection />
+                    <TimelineSection />
+                    <CurrentStateSection />
+                    <SolutionsSection />
+                    <OpinionSection />
+                    <Footer />
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
